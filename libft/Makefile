@@ -6,7 +6,7 @@
 #    By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/04/24 12:06:01 by mcassagn          #+#    #+#              #
-#    Updated: 2015/04/24 12:06:05 by mcassagn         ###   ########.fr        #
+#    Updated: 2015/05/02 13:52:03 by apantiez         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -72,6 +72,7 @@ SOURCE = 	ft_atoi.c \
 			ft_sizei.c \
 			ft_printf.c \
 			ft_dprintf.c \
+			get_next_line.c \
 			ft_strdelc.c
 
 OBJ =	$(SOURCE:.c=.o)

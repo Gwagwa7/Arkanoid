@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 12:02:06 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/05/02 13:38:38 by mcassagn         ###   ########.fr       */
+/*   Updated: 2015/05/02 18:39:31 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ typedef struct	s_ball
 
 typedef struct	s_level
 {
+	char			*name;
 	int				width;
 	int				height;
 	t_block			**blocks;
@@ -137,5 +138,17 @@ void		block_take_damage(t_game *game, int ind);
 void		board_take_bonus(t_game *game, int ind);
 void		player_lose_life(t_game *game);
 void		check_win(t_game *game);
+
+t_block		**init_block(int w, int h);
+void		add_block(t_block *block, char *line, int i, int nb_line);
+int			get_block(t_level *lv, char *line, int nb_line);
+t_level		*init_level();
+int			sav_name(t_level *lv, char *line);
+int			sav_height(t_level *lv, char *line);
+int			sav_width(t_level *lv, char *line);
+void		free_block(t_level *lv);
+void		clear_last(t_level *lv, t_game *game);
+void		parsing(int fd, t_game *game);
+
 
 #endif

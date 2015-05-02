@@ -6,10 +6,11 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/04/24 12:05:52 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/04/24 12:06:05 by mcassagn         ###   ########.fr       */
+/*   Updated: 2015/05/02 13:54:23 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdlib.h>
 #include "libft.h"
 
 static int	ft_isin(char *s)

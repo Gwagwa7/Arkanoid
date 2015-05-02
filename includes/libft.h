@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/04/24 12:05:56 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/05/02 13:53:46 by apantiez         ###   ########.fr       */
+/*   Updated: 2015/05/02 18:40:41 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ int		ft_memcmp(const void *s1, const void *s2, size_t n);
 void	*ft_memcpy(void *s1, const void *s2, size_t n);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 char	*ft_strdup(const char*s1);
-char	*ft_strcat(char *s1, const char *s2);
+char	*ft_strcat(char  *s1, const char *s2);
 char	*ft_strncat(char *s1, const char *s2, size_t n);
 size_t	ft_strlcat(char *dst, const char *src, size_t size);
 char	*ft_strchr(const char *s, int c);
@@ -86,6 +86,7 @@ int		ft_putnbru_fd(unsigned int n, int b, int fd);
 int		ft_putpoint_fd(long unsigned int n, int fd);
 int		ft_putpoint(long unsigned int n);
 int		ft_printf(const char *s, ...);
+int		get_next_line(int fd, char **line);
 int		ft_dprintf(int fd, const char *s, ...);
 
 #endif

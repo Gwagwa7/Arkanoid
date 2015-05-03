@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/04/24 12:05:56 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/04/24 12:06:05 by mcassagn         ###   ########.fr       */
+/*   Updated: 2015/05/02 13:53:46 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <unistd.h>
 # define INT_MIN (-INT_MAX - 1)
 # define INT_MAX 2147483647
+# define BUFF_SIZE 2000
 
 void	*ft_memset(void *b, int c, size_t len);
 void	ft_bzero(void *s, size_t n);

@@ -6,40 +6,66 @@
 #    By: apantiez <apantiez@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/02/26 15:21:48 by apantiez          #+#    #+#              #
-#    Updated: 2015/05/02 20:03:03 by apantiez         ###   ########.fr        #
+#    Updated: 2015/05/03 11:20:56 by apantiez         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-CC = gcc
+NAME =		arkanoid
 
-CFLAGS = -Wall -Werror -Wextra
+SRC =		src/
 
-LIBFT = -L ./libft -lft -I ./libft
+INCDIR =	inc/
 
-SRC =
+SOURCE =
 
-OBJ = $(SRC:.c=.o)
+OBJ =		$(SOURCE:.c=.o)
 
-NAME = Arkanoid
+LIB_GLFW =	glfw/src/libglfw3.a
+
+LIB =		libft/libft.a
+
+LIB_DIR =	libft
+
+CC =		gcc
+
+LINK_FLAG =	-L libft -lft -L glfw/src -lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+
+FLAG =		-I $(INCDIR) -I glfw/include/ -g -Wall -Wextra -Werror -I $(LIB_DIR)/inc
+
+RED = \033[33;31m
+BLUE = \033[33;34m
+GREEN = \033[33;32m
+RESET = \033[0m
+
+.PHONY: all re fclean
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	git submodule init
-	git submodule update
-	mkdir ./glfw/glfw-build
-	cd glfw/glfw-build/ && cmake ../
-	make -C ./libft
-#	$(CC) -o $(NAME) $(OBJ) $(CFLAGS) $(LIBFT)
+$(LIB): 
+	@make -C $(LIB_DIR)
 
-%.o : %.c
-	$(CC) -c $(CFLAGS) -I ./libft $< -o $@
+$(LIB_GLFW):
+	git submodule init
+	cd glfw && cmake .
+	make -C glfw
+
+$(NAME): $(LIB) $(LIB_GLFW) $(OBJ)
+	@$(CC) -o $(NAME) $(FLAG) $^ $(LIB_COMP) $(LINK_FLAG)
+	@rm -f $(DEP).gch
+	@echo "[$(GREEN)Compilation $(BLUE)$(NAME) $(GREEN)ok$(RESET)]"
+
+%.o: %.c
+	@$(CC) -c -o $@ $(FLAG) $^ 
 
 clean:
-	rm -rf $(OBJ)
+	@make -C $(LIB_DIR) clean
+	@rm -f $(OBJ)
+	@echo "[$(RED)Supression des .o de $(BLUE)$(NAME) $(GREEN)ok$(RESET)]"
 
 fclean: clean
-	make -C ./libft fclean
-	rm -rf $(NAME)
+	@make -C $(LIB_DIR) fclean
+	@make -C glfw clean
+	@rm -f $(NAME)
+	@echo "[$(RED)Supression de $(BLUE)$(NAME) $(GREEN)ok$(RESET)]"
 
-re : fclean all
+re: fclean all

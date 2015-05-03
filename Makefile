@@ -6,17 +6,34 @@
 #    By: apantiez <apantiez@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/02/26 15:21:48 by apantiez          #+#    #+#              #
-#    Updated: 2015/05/03 17:34:17 by mcassagn         ###   ########.fr        #
+#    Updated: 2015/05/03 22:32:58 by mcassagn         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME =		arkanoid
 
-SRC =		src/
+SRC =		srcs/
 
-INCDIR =	inc/
+INCDIR =	includes/
 
-SOURCE =
+SOURCE =	$(SRC)draw_score.c		\
+			$(SRC)check.c			\
+			$(SRC)draw_ball.c		\
+			$(SRC)draw_blocks.c		\
+			$(SRC)draw_board.c		\
+			$(SRC)draw_score.c		\
+			$(SRC)free_clear.c		\
+			$(SRC)get_maxi.c		\
+			$(SRC)hit.c				\
+			$(SRC)init.c			\
+			$(SRC)init_block.c		\
+			$(SRC)init_levels.c		\
+			$(SRC)main.c			\
+			$(SRC)move.c			\
+			$(SRC)parse_file.c		\
+			$(SRC)parsing.c			\
+			$(SRC)rest_block.c		\
+			$(SRC)tools.c
 
 OBJ =		$(SOURCE:.c=.o)
 

@@ -6,7 +6,7 @@
 /*   By: apantiez <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 18:06:20 by apantiez          #+#    #+#             */
-/*   Updated: 2015/05/03 16:47:29 by apantiez         ###   ########.fr       */
+/*   Updated: 2015/05/03 20:47:32 by mcassagn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,16 @@ t_block		**init_block(int w, int h)
 		i++;
 	}
 	return (block);
+}
+
+void		set_life(t_block *block)
+{
+	if (block->type == BLOCK_EASY)
+		block->life = 1;
+	else if (block->type == BLOCK_MEDIUM)
+		block->life = 2;
+	else if (block->type == BLOCK_HARD)
+		block->life = 3;
 }
 
 void		add_block(t_block *block, char *line, int i, int nb_line)
@@ -54,6 +64,7 @@ void		add_block(t_block *block, char *line, int i, int nb_line)
 		}
 	}
 	block->bonus = NULL;
+	set_life(block);
 }
 
 int			get_block(t_level *lv, char *line, int nb_line)

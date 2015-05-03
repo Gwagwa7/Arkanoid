@@ -6,7 +6,7 @@
 /*   By: apantiez <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 18:06:20 by apantiez          #+#    #+#             */
-/*   Updated: 2015/05/02 18:30:14 by apantiez         ###   ########.fr       */
+/*   Updated: 2015/05/03 16:47:29 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ int			get_block(t_level *lv, char *line, int nb_line)
 	int		i;
 
 	i = 0;
-	if (ft_strlen(line) != lv->width)
+	if ((int)ft_strlen(line) != lv->width)
 		return (-1);
 	if (lv->blocks == NULL)
 		lv->blocks = init_block(lv->width, lv->height);

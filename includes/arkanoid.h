@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 12:02:06 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/05/02 18:39:31 by apantiez         ###   ########.fr       */
+/*   Updated: 2015/05/03 15:25:42 by apantiez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,16 @@
 # define WIN_WIDTH	800
 # define WIN_HEIGHT	600
 
+typedef enum	e_digital
+{
+	DIGIT_TOP, DIGIT_TOP_LEFT, DIGIT_TOP_RIGHT, DIGIT_MID,DIGIT_BOT, DIGIT_BOT_RIGHT,\
+		DIGIT_BOT_LEFT, DIGIT_EMPTY
+}				t_digital;
+
 typedef enum	e_block_type
 {
 	BLOCK_EMPTY, BLOCK_EASY, BLOCK_MEDIUM, BLOCK_HARD, BLOCK_IMMORTAL,\
-	BLOCK_BONUS
+		BLOCK_BONUS
 }				t_block_type;
 
 typedef enum	e_dificulty
@@ -42,8 +48,10 @@ typedef struct	s_point_2d
 
 typedef struct	s_vector_2d
 {
-	t_point_2d		pos;
-	int				direction;
+
+	float		x;
+	float		y;
+	float		z;
 }				t_vector_2d;
 
 typedef struct	s_bonus
@@ -63,16 +71,20 @@ typedef struct	s_block
 
 typedef struct	s_board
 {
-	t_vector_2d		board;
-	int				width;
+	t_point_2d		pos;
+	t_vector_2d		direction;
+	float			width;
 	int				speed;
 	int				hide;
 }				t_board;
 
 typedef struct	s_ball
 {
-	t_vector_2d		ball;
-	int				speed;
+
+	t_point_2d	pos;
+	t_vector_2d	direction;
+	int			speed;
+	int			rayon;
 }				t_ball;
 
 typedef struct	s_level
@@ -85,26 +97,35 @@ typedef struct	s_level
 	struct s_level	*prev;
 }				t_level;
 
-typedef struct	s_game
+typedef	struct s_game
 {
 	t_board			board;
 	t_level			*levels;
 	t_block			**blocks;
-	t_ball			*ball;
+	int				level_width;
+	int				level_height;
+	int				offset_x;
+	int				offset_y;
+	t_ball			ball;
 	char			*player_name;
 	int				life;
 	int				score;
 	int				paused;
+	int				started;
+	int				win; // 1 win -1 lose 0 playing
+	int				block_width;
+	int				block_height;
 	double			time;
 	double			last_time;
+	double			dt;
 	t_dificulty		difficulty;
 	GLFWwindow		*window;
-}				t_game;
+}			t_game;
 
 typedef enum	e_collision_type
 {
 	PLAYER_COLLISION, BLOCK_COLLISION, WALL_COLLISION, GOAL_COLLISION,\
-	NO_COLLISION
+		NO_COLLISION
 }				t_collision_type;
 
 typedef struct	s_collision
@@ -149,6 +170,8 @@ int			sav_width(t_level *lv, char *line);
 void		free_block(t_level *lv);
 void		clear_last(t_level *lv, t_game *game);
 void		parsing(int fd, t_game *game);
+
+int			draw_score(int n, float offset_x, float offset_y);
 
 
 #endif

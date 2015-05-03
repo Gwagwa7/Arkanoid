@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 13:40:09 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/05/03 11:18:04 by mcassagn         ###   ########.fr       */
+/*   Updated: 2015/05/03 17:29:23 by mcassagn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,43 +31,40 @@ static t_game	*uf_get_game(void)
 	return (game);
 }
 
-static void error_callback(int error, const char *description)
+void		draw_board(t_game *game)
 {
-	fputs(description, stderr);
-}
-
-void	draw_board(t_game *game)
-{
-	float	cx;
+	float	x;
 	float	y;
 
-	y = (float)game->board.pos.y / (float)WIN_HEIGHT;
+	x = (float)game->board.pos.x;
+	x = (x - ((float)WIN_WIDTH / 2.0f));
+	x = x / (WIN_WIDTH / 2);
+	y = (float)game->board.pos.y;
+	y = (y + ((float)WIN_HEIGHT / 2.0f));
+	y = y / (WIN_HEIGHT / 2);
 	glBegin(GL_LINES);
 	glColor3f(0.9f, 0.5f, 0.3f);
-	cx = (float)game->board.pos.x / (float)WIN_WIDTH;
-	glVertex2f(cx - (game->board.width / 2), y);
-	glVertex2f(cx + (game->board.width / 2), y);
+	glVertex2f(x - (game->board.width / 2), y);
+	glVertex2f(x + (game->board.width / 2), y);
 	glEnd();
 }
 
-void	move_board(t_game *game, int sens)
+void		move_board(t_game *game, int sens)
 {
 	int	i;
-	int	width;
-	int	height;
 
 	i = 0;
 	if (sens)
 	{
-		while (i < game->board.speed && game->board.pos.x > -650)
+		while (i < game->board.speed && game->board.pos.x > 50)
 		{
 			--game->board.pos.x;
 			++i;
 		}
 	}
-	else if (game->board.pos.x < 650)
+	else if (game->board.pos.x < 1200)
 	{
-		while (i < game->board.speed && game->board.pos.x < 650)
+		while (i < game->board.speed && game->board.pos.x < 750)
 		{
 			++game->board.pos.x;
 			++i;
@@ -80,6 +77,8 @@ static void	key_callback(GLFWwindow *window,\
 {
 	t_game *game;
 
+	(void)mods;
+	(void)scancode;
 	game = uf_get_game();
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -91,7 +90,25 @@ static void	key_callback(GLFWwindow *window,\
 		game->paused = 1;
 	else if (key == GLFW_KEY_O)
 		game->paused = 0;
-	printf("Paused = %d\n", game->paused);
+}
+
+static void	init_ball(t_game *game)
+{
+	game->ball.speed = 500;
+	game->ball.pos.x = 400;
+	game->ball.pos.y = 400;
+	game->ball.direction.x = 10;
+	game->ball.direction.y = 5;
+	game->ball.direction.z = 5;
+	game->ball.rayon = WIN_WIDTH / 200;
+}
+
+static void	init_board(t_game *game)
+{
+	game->board.pos.x = 400;
+	game->board.pos.y = -750;
+	game->board.speed = 75;
+	game->board.width = 0.3f;
 }
 
 static void	create_game(t_game *game, char *player_name)
@@ -104,20 +121,11 @@ static void	create_game(t_game *game, char *player_name)
 	game->last_time = 1;
 	game->difficulty = EASY;
 	game->levels = NULL;
-	game->level_height = 0;
-	game->level_width = 0;
+	game->level_height = 5;
+	game->level_width = 20;
 	game->blocks = NULL;
-	game->ball.speed = 500;
-	game->ball.pos.x = 1;
-	game->ball.pos.y = 1;
-	game->ball.direction.x = 10;
-	game->ball.direction.y = 5;
-	game->ball.direction.z = 5;
-	game->ball.rayon = WIN_WIDTH / 200;
-	game->board.pos.x = 0;
-	game->board.pos.y = -750;
-	game->board.speed = 150;
-	game->board.width = 0.3f;
+	init_ball(game);
+	init_board(game);
 	game->started = 1;
 	if (player_name)
 		game->player_name = player_name;
@@ -128,19 +136,8 @@ static void	create_game(t_game *game, char *player_name)
 	game->last_time = glfwGetTime();
 	game->offset_x = 40;
 	game->offset_y = 40;
+	game->dt = 1.0f;
 	/*parse_files(&game);*/
-}
-
-static void	print_game_state(t_game game)
-{
-	ft_printf("Game logically created let's check !\n");
-	ft_printf("Game->player_name = %s\n", game.player_name);
-	ft_printf("Game->life = %d\n", game.life);
-	ft_printf("Game->score = %d\n", game.score);
-	ft_printf("Game->paused = %d\n", game.paused);
-	printf("Game->time = %f\n", game.time);
-	printf("Game->last_time = %f\n", game.last_time);
-	ft_printf("Game->difficulty = %d\n", game.difficulty);
 }
 
 static void	init_glfw(t_game *game)
@@ -166,15 +163,17 @@ static void	terminate_glfw(t_game *game)
 	exit(1);
 }
 
-void	draw_ball(t_game *game)
+void		draw_ball(t_game *game)
 {
 	int		i;
 	float	theta;
 	float	xy[2];
 	float	c[2];
 
-	c[0] = (float)game->ball.pos.x / (float)WIN_WIDTH;
-	c[1] = (float)game->ball.pos.y / (float)WIN_HEIGHT;
+	c[0] = ((float)game->ball.pos.x - ((float)WIN_WIDTH / 2))
+		/ (float)WIN_WIDTH;
+	c[1] = ((float)game->ball.pos.y - ((float)WIN_HEIGHT / 2))
+		/ (float)WIN_HEIGHT;
 	glBegin(GL_TRIANGLE_FAN);
 	glColor3f(0.0f, 0.0f, 1.0f);
 	i = 0;
@@ -186,17 +185,33 @@ void	draw_ball(t_game *game)
 		glVertex2f(xy[0] + c[0], xy[1] + c[1]);
 		i++;
 	}
-	glEnd(); 
+	glEnd();
 }
 
-void	move_ball(t_game *game)
+void		move_ball(t_game *game)
 {
 	game->ball.pos.x += game->ball.direction.x;
-	if (game->ball.pos.x >= 800 || game->ball.pos.x <= -800)
+	if (game->ball.pos.x >= 1200 || game->ball.pos.x <= -400)
 		game->ball.direction.x = -game->ball.direction.x;
 	game->ball.pos.y += game->ball.direction.y;
-	if (game->ball.pos.y >= 800)
+	if (game->ball.pos.y >= 1200)
 		game->ball.direction.y = -game->ball.direction.y;
+}
+
+static void	set_color(t_block_type type)
+{
+	if (type == BLOCK_EASY)
+		glColor3f(0.0f, 1.0f, 0.0f);
+	else if (type == BLOCK_MEDIUM)
+		glColor3f(0.0f, 0.0f, 1.0f);
+	else if (type == BLOCK_HARD)
+		glColor3f(1.0f, 0.0f, 0.0f);
+	else if (type == BLOCK_IMMORTAL)
+		glColor3f(0.5f, 0.5f, 0.5f);
+	else if (type == BLOCK_EMPTY)
+		glColor3f(0.1f, 0.1f, 0.1f);
+	else if (type == BLOCK_BONUS)
+		glColor3f(0.7f, 0.7f, 0.7f);
 }
 
 void		draw_block(t_game *game, t_block *block)
@@ -213,18 +228,7 @@ void		draw_block(t_game *game, t_block *block)
 	y = (y - ((float)WIN_HEIGHT / 2.0f));
 	y = -y / (WIN_HEIGHT / 2);
 	glBegin(GL_QUADS);
-	if (block->type == BLOCK_EASY)
-		glColor3f(0.0f, 1.0f, 0.0f);
-	else if (block->type == BLOCK_MEDIUM)
-		glColor3f(0.0f, 0.0f, 1.0f);
-	else if (block->type == BLOCK_HARD)
-		glColor3f(1.0f, 0.0f, 0.0f);
-	else if (block->type == BLOCK_IMMORTAL)
-		glColor3f(0.5f, 0.5f, 0.5f);
-	else if (block->type == BLOCK_EMPTY)
-		glColor3f(0.0f, 0.0f, 0.0f);
-	else if (block->type == BLOCK_BONUS)
-		glColor3f(0.7f, 0.7f, 0.7f);
+	set_color(block->type);
 	width = (float)game->offset_x / (float)WIN_WIDTH * 2.0f;
 	height = (float)game->offset_y / (float)WIN_HEIGHT * 2.0f;
 	glVertex2f(x, y);
@@ -238,131 +242,127 @@ void		draw_blocks(t_game *game)
 {
 	int		x;
 	int		y;
-	t_block	block;
 
-	block.type = BLOCK_EASY;
-	block.life = 3;
 	y = 0;
-	while (y < 5)
+	while (y < game->level_height)
 	{
 		x = 0;
-		while (x < 25)
+		while (x < game->level_width)
 		{
-			block.pos.x = x;
-			block.pos.y = y;
-			draw_block(game, &block);
-			if (block.type == BLOCK_EASY)
-				block.type = BLOCK_MEDIUM;
-			else if (block.type == BLOCK_MEDIUM)
-				block.type = BLOCK_HARD;
-			else if (block.type == BLOCK_HARD)
-				block.type = BLOCK_IMMORTAL;
-			else if (block.type == BLOCK_IMMORTAL)
-				block.type = BLOCK_EMPTY;
-			else if (block.type == BLOCK_EMPTY)
-				block.type = BLOCK_BONUS;
-			else if (block.type == BLOCK_BONUS)
-				block.type = BLOCK_EASY;
+			draw_block(game, &(game->blocks[y][x]));
 			++x;
 		}
 		++y;
 	}
 }
 
-void	update_time(t_game *game)
+void		update_time(t_game *game)
 {
 	game->last_time = game->time;
 	game->time = glfwGetTime();
 	game->dt = game->time - game->last_time;
 }
 
-void	ball_hit_block(t_block *block, t_ball *ball, t_game *game)
+void		ball_hit_block(t_block *block, t_ball *ball, t_game *game, int sens)
 {
+	static double	last_change = 0;
+
 	game->score += 10;
-	--block->life;
 	if (block->life != 0)
 	{
-		ball->direction.x = -ball->direction.x;
-		ball->direction.y = -ball->direction.y;
+		if (glfwGetTime() - last_change >= 0.5)
+		{
+			if (sens == 1)
+				ball->direction.y = -ball->direction.y;
+			else if (sens == 2)
+				ball->direction.x = -ball->direction.x;
+			else if (sens == 3)
+				ball->direction.y = -ball->direction.y;
+			else if (sens == 4)
+				ball->direction.x = -ball->direction.x;
+			last_change = glfwGetTime();
+		}
 	}
-	else
+	--block->life;
+	if (block->life <= 0)
 		block->type = BLOCK_EMPTY;
 }
 
-int		check_block_collision(t_block *block, t_ball *ball, t_game *game)
+void		get_block_maxi(t_block *block, float point[4][2], t_game *game)
 {
-	int	p_ball[4][2];
-	int	p_block[4][2];
+	float	width;
+	float	height;
+	float	tmp_x;
+	float	tmp_y;
 
-	// North
-	p_ball[0][0] = ball->pos.x;
-	p_ball[0][1] = ball->pos.y + ball->rayon;
-	// East
-	p_ball[1][0] = ball->pos.x + ball->rayon;
-	p_ball[1][1] = ball->pos.y;
-	// South
-	p_ball[2][0] = ball->pos.x;
-	p_ball[2][1] = ball->pos.y - ball->rayon;
-	// West
-	p_ball[3][0] = ball->pos.x - ball->rayon;
-	p_ball[3][1] = ball->pos.y;
-	// Top left
-	p_block[0][0] = block->pos.x;
-	p_block[0][1] = block->pos.y;
-	// Top right
-	p_block[1][0] = block->pos.x + game->offset_x;
-	p_block[1][1] = block->pos.y;
-	// Bottom left
-	p_block[2][0] = block->pos.x;
-	p_block[2][1] = block->pos.y - game->offset_y;
-	// Bottom right
-	p_block[3][0] = block->pos.x + game->offset_x;
-	p_block[3][1] = block->pos.y - game->offset_y;
+	tmp_x = (float)block->pos.x * game->offset_x;
+	tmp_y = ((float)block->pos.y + 1.0f) * game->offset_y;
+	tmp_x = (tmp_x - ((float)WIN_WIDTH / 2.0f));
+	tmp_x = tmp_x / (WIN_WIDTH / 2);
+	tmp_y = (tmp_y - ((float)WIN_HEIGHT / 2.0f));
+	tmp_y = -tmp_y / (WIN_HEIGHT / 2);
+	width = (float)game->offset_x / (float)WIN_WIDTH * 2.0f;
+	height = (float)game->offset_y / (float)WIN_HEIGHT * 2.0f;
+	point[0][0] = tmp_x;
+	point[0][1] = tmp_y;
+	point[1][0] = tmp_x + width;
+	point[1][1] = tmp_y;
+	point[2][0] = tmp_x;
+	point[2][1] = tmp_y - height;
+	point[3][0] = tmp_x + width;
+	point[3][1] = tmp_y - height;
+}
 
-	if (p_ball[0][1] > p_block[2][1] && p_ball[0][0] > p_block[2][0] && p_ball[0][0] < p_block[3][0])
-	{
-		// hit by Bottom
+void		get_ball_maxi(t_ball *ball, float point[4][2])
+{
+	float	tmp_x;
+	float	tmp_y;
+	float	t;
+	float	theta;
+
+	tmp_x = ((float)ball->pos.x - ((float)WIN_WIDTH / 2)) / (float)WIN_WIDTH;
+	tmp_y = ((float)ball->pos.y - ((float)WIN_HEIGHT / 2)) / (float)WIN_HEIGHT;
+	theta = 2.0f * 3.1415926f * 100.0f / 100.0f;
+	t = (float)ball->rayon / ((float)WIN_WIDTH / 4) * sinf(theta);
+	point[0][0] = tmp_x;
+	point[0][1] = tmp_y + t;
+	theta = 2.0f * 3.1415926f * 25.0f / 100.0f;
+	t = (float)ball->rayon / ((float)WIN_HEIGHT / 4) * cosf(theta);
+	point[1][0] = tmp_x + t;
+	point[1][1] = tmp_y;
+	theta = 2.0f * 3.1415926f * 50.0f / 100.0f;
+	t = (float)ball->rayon / ((float)WIN_HEIGHT / 4) * sinf(theta);
+	point[2][0] = tmp_x;
+	point[2][1] = tmp_y - t;
+	theta = 2.0f * 3.1415926f * 75.0f / 100.0f;
+	t = (float)ball->rayon / ((float)WIN_HEIGHT / 4) * cosf(theta);
+	point[3][0] = tmp_x - t;
+	point[3][1] = tmp_y;
+}
+
+int			check_block_collision(t_block *block, t_ball *ball, t_game *game)
+{
+	float	p_ball[4][2];
+	float	p_block[4][2];
+
+	get_ball_maxi(ball, p_ball);
+	get_block_maxi(block, p_block, game);
+	if (p_ball[0][1] > p_block[2][1] && p_ball[0][0] > p_block[2][0]
+			&& p_ball[0][0] < p_block[3][0])
 		return (1);
-	}
-	else if (p_ball[3][0] < p_block[3][0] && p_ball[3][1] > p_block[3][1] && p_ball[3][1] < p_block[1][1])
-	{
-		// Hit by right
-		return (1);
-	}
-	else if (p_ball[1][0] > p_block[2][0] && p_ball[1][1] > p_block[2][1] && p_ball[1][1] < p_block[0][1])
-	{
-		// Hit by left
+	else if (p_ball[3][0] < p_block[3][0] && p_ball[3][1] < p_block[3][1]
+			&& p_ball[3][1] > p_block[1][1])
+		return (2);
+	else if (p_ball[1][0] > p_block[2][0] && p_ball[1][1] < p_block[2][1] &&
+			p_ball[1][1] > p_block[0][1])
 		return (3);
-	}
-	else if (p_ball[2][1] > p_block[0][1] && p_ball[2][0] > p_block[0][0] && p_ball[2][0] < p_ball[1][0])
-	{
-		// Hit by top
+	else if (p_ball[2][1] > p_block[0][1] && p_ball[2][0] > p_block[0][0] &&
+			p_ball[2][0] < p_block[1][0])
 		return (4);
-	}
-/*	else if ()
-	{
-		// Hit by bottom right
-		return (5);
-	}
-	else if ()
-	{
-		// Hit by bottom left
-		return (6);
-	}
-	else if ()
-	{
-		// Hit by top left
-		return (7);
-	}
-	else if ()
-	{
-		// Hit by top right
-		return (9);
-	}*/
 	return (0);
 }
 
-void	check_blocks_collision(t_game *game)
+void		check_blocks_collision(t_game *game)
 {
 	t_block	*block;
 	t_ball	*ball;
@@ -377,14 +377,11 @@ void	check_blocks_collision(t_game *game)
 		j = 0;
 		while (j < game->level_width)
 		{
-			block = &(game->blocks[j][i]);
+			block = &(game->blocks[i][j]);
 			if (block->life > 0 && block->type != BLOCK_EMPTY)
 			{
 				if ((ret = check_block_collision(block, ball, game)))
-				{
-//					ball_hit_block(block, ball, game);
-					printf("Block %d %d hit at %d\n", block->pos.x, block->pos.y, ret);
-				}
+					ball_hit_block(block, ball, game, ret);
 			}
 			++j;
 		}
@@ -392,118 +389,122 @@ void	check_blocks_collision(t_game *game)
 	}
 }
 
-void	check_collision(t_game *game)
+int			ball_hit_board(t_game *game)
 {
-	t_block	*block;
-	t_ball	*ball;
+	float			south[2];
+	float			board[2];
+	float			tmp[2];
 
-	ball = &(game->ball);
-	if (ball->pos.y < -750)
-	{
-		--game->life;
-		printf("You have again %d lives !\n", game->life);
-		ball->pos.x = 0;
-		ball->pos.y = 0;
-		return ;
-	}
-	/*	if (ball_hit_board(game))
-		{
-		rebounce_ball(game);
-		}*/
-	check_blocks_collision(game);
+	south[0] = ((float)game->ball.pos.x - ((float)WIN_WIDTH / 2))
+		/ (float)WIN_WIDTH;
+	south[1] = ((float)game->ball.pos.y - ((float)WIN_HEIGHT / 2))
+		/ (float)WIN_HEIGHT;
+	tmp[0] = 2.0f * 3.1415926f * 50.0f / 100.0f;
+	tmp[1] = (float)game->ball.rayon / ((float)WIN_HEIGHT / 4) * sinf(tmp[0]);
+	south[1] -= tmp[1];
+	board[0] = ((float)game->board.pos.x - ((float)WIN_WIDTH))
+		/ (float)WIN_WIDTH;
+	board[1] = ((float)game->board.pos.y) / (float)WIN_HEIGHT + 0.1f;
+	board[0] = board[0] * 2.0f;
+	board[0] += 1.0f;
+	if (south[0] >= board[0] - (game->board.width / 2) && south[0] <= board[0]
+			+ (game->board.width / 2) && south[1] <= board[1])
+		return (1);
+	return (0);
 }
 
-	int		rest_destuctible_block(t_game *game)
-	{
-		t_block	*block;
-		int		i;
-		int		j;
+void		check_collision(t_game *game)
+{
+	t_ball			*ball;
+	static double	last_change = 0;
 
-		i = 0;
-		while (i < game->level_width)
+	ball = &(game->ball);
+	if (ball_hit_board(game) && glfwGetTime() - last_change >= 0.4)
+	{
+		game->ball.direction.y *= -1;
+		last_change = glfwGetTime();
+	}
+	check_blocks_collision(game);
+	if (ball->pos.y <= -410)
+	{
+		--game->life;
+		ball->pos.x = 400;
+		ball->pos.y = 400;
+		usleep(300000);
+	}
+}
+
+int			rest_destuctible_block(t_game *game)
+{
+	t_block	*block;
+	int		i;
+	int		j;
+
+	i = 0;
+	while (i < game->level_width)
+	{
+		j = 0;
+		while (j < game->level_height)
 		{
-			j = 0;
-			while (j < game->level_height)
-			{
-				block = &(game->blocks[j][i]);
-				if (block->type != BLOCK_IMMORTAL && block->life > 0)
-					return (1);
-				++j;
-			}
-			++i;
+			block = &(game->blocks[j][i]);
+			if (block->type != BLOCK_IMMORTAL && block->life > 0)
+				return (1);
+			++j;
 		}
-		return (0);
+		++i;
 	}
+	return (0);
+}
 
-	void	check_game_state(t_game *game)
-	{
-		/*	if (!rest_destuctible_block(game))
-			game->win = 1;*/
-		if (game->life <= 0)
-			game->win = -1;
-	}
+void		check_game_state(t_game *game)
+{
+	if (!rest_destuctible_block(game))
+		game->win = 1;
+	if (game->life <= 0)
+		game->win = -1;
+}
 
-	void	draw_start_window(t_game *game)
-	{
-		/*	draw_player_name(game);
-			draw_level_chooser(game);
-			draw_start_button(game);*/
-	}
+static void	draw_stuff(t_game *game)
+{
+	draw_board(game);
+	draw_blocks(game);
+	draw_ball(game);
+}
 
-	void	draw_end_window(t_game *game)
+static void	app(t_game *game)
+{
+	int	width;
+	int	height;
+
+	init_glfw(game);
+	while (!glfwWindowShouldClose(game->window))
 	{
-		/*	if (game->win == 1)
-			draw_string("Win!");
-			else
-			draw_string("Lose!");
-			draw_player_name(game);
-			draw_score(game);*/
+		update_time(game);
+		if (game->started && !game->paused && !game->win)
+		{
+			glClear(GL_COLOR_BUFFER_BIT);
+			glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+			glfwGetFramebufferSize(game->window, &width, &height);
+			move_ball(game);
+			draw_stuff(game);
+			check_collision(game);
+			check_game_state(game);
+			usleep(12500);
+		}
 		glfwSwapBuffers(game->window);
-		game->paused = 0;
-		game->started = 0;
-		game->win = 0;
-		game->score = 0;
-		sleep(5);
+		glfwPollEvents();
+		usleep(100);
 	}
+}
 
-	static void	app(t_game *game)
-	{
-		int	width;
-		int	height;
+int			main(int ac, char **av)
+{
+	t_game	*game;
 
-		init_glfw(game);
-		while (!glfwWindowShouldClose(game->window))
-		{
-			update_time(game);
-			/*		if (!game->started)
-					draw_start_window(game);
-					else */if (game->started && !game->paused && !game->win)
-			{
-				glClear(GL_COLOR_BUFFER_BIT);
-				glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-				glfwGetFramebufferSize(game->window, &width, &height);
-				draw_blocks(game);
-				move_ball(game);
-				draw_ball(game);
-				draw_board(game);
-				check_collision(game);
-				check_game_state(game);
-			}
-			/*		else if (!game->win)
-					draw_end_window(game);*/
-			glfwSwapBuffers(game->window);
-			glfwPollEvents();
-			usleep(100);
-		}
-	}
-
-	int		main(int ac, char **av)
-	{
-		t_game	*game;
-
-		game = uf_get_game();
-		create_game(game, av[1]);
-		app(game);
-		terminate_glfw(game);
-		return (0);
-	}
+	(void)ac;
+	game = uf_get_game();
+	create_game(game, av[1]);
+	app(game);
+	terminate_glfw(game);
+	return (0);
+}

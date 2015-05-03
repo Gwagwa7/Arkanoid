@@ -6,7 +6,7 @@
 /*   By: mcassagn <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/05/02 13:40:09 by mcassagn          #+#    #+#             */
-/*   Updated: 2015/05/02 20:01:14 by mcassagn         ###   ########.fr       */
+/*   Updated: 2015/05/03 11:18:04 by mcassagn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,8 +126,8 @@ static void	create_game(t_game *game, char *player_name)
 	game->window = NULL;
 	game->time = glfwGetTime();
 	game->last_time = glfwGetTime();
-	game->offset_x = 45;
-	game->offset_y = 45;
+	game->offset_x = 40;
+	game->offset_y = 40;
 	/*parse_files(&game);*/
 }
 
@@ -207,7 +207,7 @@ void		draw_block(t_game *game, t_block *block)
 	float	height;
 
 	x = (float)block->pos.x * game->offset_x;
-	y = ((float)block->pos.y + 1.0f) * game->offset_y;
+	y = ((float)block->pos.y + 2.0f) * game->offset_y;
 	x = (x - ((float)WIN_WIDTH / 2.0f));
 	x = x / (WIN_WIDTH / 2);
 	y = (y - ((float)WIN_HEIGHT / 2.0f));
@@ -225,8 +225,8 @@ void		draw_block(t_game *game, t_block *block)
 		glColor3f(0.0f, 0.0f, 0.0f);
 	else if (block->type == BLOCK_BONUS)
 		glColor3f(0.7f, 0.7f, 0.7f);
-	width = 0.1f;
-	height = 0.1f;
+	width = (float)game->offset_x / (float)WIN_WIDTH * 2.0f;
+	height = (float)game->offset_y / (float)WIN_HEIGHT * 2.0f;
 	glVertex2f(x, y);
 	glVertex2f(x, y + height);
 	glVertex2f(x + width, y + height);
@@ -276,10 +276,124 @@ void	update_time(t_game *game)
 	game->dt = game->time - game->last_time;
 }
 
-void	check_collision(t_game *game)
+void	ball_hit_block(t_block *block, t_ball *ball, t_game *game)
 {
+	game->score += 10;
+	--block->life;
+	if (block->life != 0)
+	{
+		ball->direction.x = -ball->direction.x;
+		ball->direction.y = -ball->direction.y;
+	}
+	else
+		block->type = BLOCK_EMPTY;
+}
+
+int		check_block_collision(t_block *block, t_ball *ball, t_game *game)
+{
+	int	p_ball[4][2];
+	int	p_block[4][2];
+
+	// North
+	p_ball[0][0] = ball->pos.x;
+	p_ball[0][1] = ball->pos.y + ball->rayon;
+	// East
+	p_ball[1][0] = ball->pos.x + ball->rayon;
+	p_ball[1][1] = ball->pos.y;
+	// South
+	p_ball[2][0] = ball->pos.x;
+	p_ball[2][1] = ball->pos.y - ball->rayon;
+	// West
+	p_ball[3][0] = ball->pos.x - ball->rayon;
+	p_ball[3][1] = ball->pos.y;
+	// Top left
+	p_block[0][0] = block->pos.x;
+	p_block[0][1] = block->pos.y;
+	// Top right
+	p_block[1][0] = block->pos.x + game->offset_x;
+	p_block[1][1] = block->pos.y;
+	// Bottom left
+	p_block[2][0] = block->pos.x;
+	p_block[2][1] = block->pos.y - game->offset_y;
+	// Bottom right
+	p_block[3][0] = block->pos.x + game->offset_x;
+	p_block[3][1] = block->pos.y - game->offset_y;
+
+	if (p_ball[0][1] > p_block[2][1] && p_ball[0][0] > p_block[2][0] && p_ball[0][0] < p_block[3][0])
+	{
+		// hit by Bottom
+		return (1);
+	}
+	else if (p_ball[3][0] < p_block[3][0] && p_ball[3][1] > p_block[3][1] && p_ball[3][1] < p_block[1][1])
+	{
+		// Hit by right
+		return (1);
+	}
+	else if (p_ball[1][0] > p_block[2][0] && p_ball[1][1] > p_block[2][1] && p_ball[1][1] < p_block[0][1])
+	{
+		// Hit by left
+		return (3);
+	}
+	else if (p_ball[2][1] > p_block[0][1] && p_ball[2][0] > p_block[0][0] && p_ball[2][0] < p_ball[1][0])
+	{
+		// Hit by top
+		return (4);
+	}
+/*	else if ()
+	{
+		// Hit by bottom right
+		return (5);
+	}
+	else if ()
+	{
+		// Hit by bottom left
+		return (6);
+	}
+	else if ()
+	{
+		// Hit by top left
+		return (7);
+	}
+	else if ()
+	{
+		// Hit by top right
+		return (9);
+	}*/
+	return (0);
+}
+
+void	check_blocks_collision(t_game *game)
+{
+	t_block	*block;
+	t_ball	*ball;
 	int		i;
 	int		j;
+	int		ret;
+
+	ball = &game->ball;
+	i = 0;
+	while (i < game->level_height)
+	{
+		j = 0;
+		while (j < game->level_width)
+		{
+			block = &(game->blocks[j][i]);
+			if (block->life > 0 && block->type != BLOCK_EMPTY)
+			{
+				if ((ret = check_block_collision(block, ball, game)))
+				{
+//					ball_hit_block(block, ball, game);
+					printf("Block %d %d hit at %d\n", block->pos.x, block->pos.y, ret);
+				}
+			}
+			++j;
+		}
+		++i;
+	}
+}
+
+void	check_collision(t_game *game)
+{
 	t_block	*block;
 	t_ball	*ball;
 
@@ -292,124 +406,104 @@ void	check_collision(t_game *game)
 		ball->pos.y = 0;
 		return ;
 	}
-/*	if (ball_hit_board(game))
-	{
+	/*	if (ball_hit_board(game))
+		{
 		rebounce_ball(game);
-	}*/
-	i = 0;
-	while (i < game->level_height)
+		}*/
+	check_blocks_collision(game);
+}
+
+	int		rest_destuctible_block(t_game *game)
 	{
-		j = 0;
-		while (j < game->level_width)
+		t_block	*block;
+		int		i;
+		int		j;
+
+		i = 0;
+		while (i < game->level_width)
 		{
-			block = &(game->blocks[j][i]);
-			if (block && block->life > 0 &&
-					block->pos.x == ball->pos.x && block->pos.y == ball->pos.y)
+			j = 0;
+			while (j < game->level_height)
 			{
-				--block->life;
-				if (block->life != 0)
-				{
-					ball->direction.x = -ball->direction.x;
-					ball->direction.y = -ball->direction.y;
-				}
+				block = &(game->blocks[j][i]);
+				if (block->type != BLOCK_IMMORTAL && block->life > 0)
+					return (1);
+				++j;
 			}
-			++j;
+			++i;
 		}
-		++i;
+		return (0);
 	}
-}
 
-int		rest_destuctible_block(t_game *game)
-{
-	t_block	*block;
-	int		i;
-	int		j;
-
-	i = 0;
-	while (i < game->level_width)
+	void	check_game_state(t_game *game)
 	{
-		j = 0;
-		while (j < game->level_height)
-		{
-			block = &(game->blocks[j][i]);
-			if (block->type != BLOCK_IMMORTAL && block->life > 0)
-				return (1);
-			++j;
-		}
-		++i;
+		/*	if (!rest_destuctible_block(game))
+			game->win = 1;*/
+		if (game->life <= 0)
+			game->win = -1;
 	}
-	return (0);
-}
 
-void	check_game_state(t_game *game)
-{
-/*	if (!rest_destuctible_block(game))
-		game->win = 1;*/
-	if (game->life <= 0)
-		game->win = -1;
-}
-
-void	draw_start_window(t_game *game)
-{
-/*	draw_player_name(game);
-	draw_level_chooser(game);
-	draw_start_button(game);*/
-}
-
-void	draw_end_window(t_game *game)
-{
-/*	if (game->win == 1)
-		draw_string("Win!");
-	else
-		draw_string("Lose!");
-	draw_player_name(game);
-	draw_score(game);*/
-	glfwSwapBuffers(game->window);
-	game->paused = 0;
-	game->started = 0;
-	game->win = 0;
-	game->score = 0;
-	sleep(5);
-}
-
-static void	app(t_game *game)
-{
-	int	width;
-	int	height;
-
-	init_glfw(game);
-	while (!glfwWindowShouldClose(game->window))
+	void	draw_start_window(t_game *game)
 	{
-		update_time(game);
-/*		if (!game->started)
-			draw_start_window(game);
-		else */if (game->started && !game->paused && !game->win)
-		{
-			glClear(GL_COLOR_BUFFER_BIT);
-			glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-			glfwGetFramebufferSize(game->window, &width, &height);
-			draw_blocks(game);
-			move_ball(game);
-			draw_ball(game);
-			draw_board(game);
-			check_collision(game);
-			check_game_state(game);
-		}
-/*		else if (!game->win)
-			draw_end_window(game);*/
+		/*	draw_player_name(game);
+			draw_level_chooser(game);
+			draw_start_button(game);*/
+	}
+
+	void	draw_end_window(t_game *game)
+	{
+		/*	if (game->win == 1)
+			draw_string("Win!");
+			else
+			draw_string("Lose!");
+			draw_player_name(game);
+			draw_score(game);*/
 		glfwSwapBuffers(game->window);
-		glfwPollEvents();
-		usleep(100);
+		game->paused = 0;
+		game->started = 0;
+		game->win = 0;
+		game->score = 0;
+		sleep(5);
 	}
-}
 
-int		main(int ac, char **av)
-{
-	t_game	*game;
+	static void	app(t_game *game)
+	{
+		int	width;
+		int	height;
 
-	game = uf_get_game();
-	create_game(game, av[1]);
-	app(game);
-	terminate_glfw(game);
-	return (0);
-}
+		init_glfw(game);
+		while (!glfwWindowShouldClose(game->window))
+		{
+			update_time(game);
+			/*		if (!game->started)
+					draw_start_window(game);
+					else */if (game->started && !game->paused && !game->win)
+			{
+				glClear(GL_COLOR_BUFFER_BIT);
+				glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+				glfwGetFramebufferSize(game->window, &width, &height);
+				draw_blocks(game);
+				move_ball(game);
+				draw_ball(game);
+				draw_board(game);
+				check_collision(game);
+				check_game_state(game);
+			}
+			/*		else if (!game->win)
+					draw_end_window(game);*/
+			glfwSwapBuffers(game->window);
+			glfwPollEvents();
+			usleep(100);
+		}
+	}
+
+	int		main(int ac, char **av)
+	{
+		t_game	*game;
+
+		game = uf_get_game();
+		create_game(game, av[1]);
+		app(game);
+		terminate_glfw(game);
+		return (0);
+	}
